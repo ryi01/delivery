@@ -26,8 +26,6 @@ static int storedCnt = 0;					//number of cells occupied
 static int systemSize[2] = {0, 0};  		//row/column of the delivery system
 static char masterPassword[PASSWD_LEN+1];	//master password
 
-extern passwd;//input passwd
-
 
 
 // ------- inner functions ---------------
@@ -85,6 +83,7 @@ static void initStorage(int x, int y) {
 //return : 0 - password is matching, -1 - password is not matching
 static int inputPasswd(int x, int y) {
 	
+	int passwd;
 	int i;
 	
 	if(deliverySystem[x][y].passwd==passwd||masterPassword[PASSWD_LEN+1]==passwd)//input passwd == save passwd
@@ -131,7 +130,12 @@ int str_backupSystem(char* filepath) {
 	
 	while(fscanf(filepath, "%d %d %d %d %d %s", x, y, p.building, p.room, p.passwd[i], p.context)!=EOF);
 	{
-		fput("%d %d %d %d %d %s", x, y, p.building, p.room, p.passwd[i], p.context);	
+		fput("%d %d %d %d %d %s", x, y, p.building, p.room, p.passwd[i], p.context);
+		
+		if(p.context == '\0')
+		{
+			line++;//next line
+		}	
 	}
 	
 	fclose(filepath);
@@ -169,7 +173,10 @@ int str_createSystem(char* filepath) {
 		if(p.context == '\0')
 		{
 			line++;//next line
+			storedCnt++;
 		}
+		
+		deliverySystem[x][y].cnt = storedCnt;
 	}
 	
 	fclose(filepath);
@@ -284,14 +291,14 @@ int str_extractStorage(int x, int y) {
 	
 	if(inputpasswd()==0)
 	{
-		deliverySystem[x][y].context;
-		
-		return 0;
+		printStorageInside(x, y);
 	}
 	else
 	{
 		return -1;
 	}
+	
+	fclose(filepath);
 	
 }
 
@@ -302,6 +309,7 @@ int str_extractStorage(int x, int y) {
 int str_findStorage(int nBuilding, int nRoom) {
 	
 	str_printStorageStatus();
+	
 	
 	
 	return cnt;
