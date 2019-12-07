@@ -69,24 +69,16 @@ static void initStorage(int x, int y) {
 	}
 	
 	p.context = (char*)malloc(sizeof(char*)*15);
-	
-	for(i=0; i<15; i++)
-	{
-		*(p.context + i) =(char*)malloc(sizeof(int*)*15);
-	}
-	
-	return deliverySystem[x][y];
 }
 
 //get password input and check if it is correct for the cell (x,y)
 //int x, int y : cell for password check
 //return : 0 - password is matching, -1 - password is not matching
 static int inputPasswd(int x, int y) {
-	
+
 	int passwd;
-	int i;
 	
-	if(deliverySystem[x][y].passwd==passwd||masterPassword[PASSWD_LEN+1]==passwd)//input passwd == save passwd
+	if(passwd == deliverySystem[x][y].passwd||masterPassword[PASSWD_LEN+1]==i)//input passwd == save passwd
 	{
 		return 0;
 	}
@@ -114,7 +106,7 @@ int str_backupSystem(char* filepath) {
 	
 	storage_t p;
 	
-	*filepath = fopen("storage.txt", "a");
+	FILE *fp= fopen("storage.txt", "a");
 	
 	if(filepath == NULL)
 	{
@@ -125,10 +117,10 @@ int str_backupSystem(char* filepath) {
 		return 0;
 	}
 	
-	fscanf(filepath, "%d %d", systemSize[0], systemSize[1]);//N and M
-	fscanf(filepath, "%d", masterPassword[PASSWD_LEN+1]); //masterpassword
+	fscanf(fp, "%d %d", systemSize[0], systemSize[1]);//N and M
+	fscanf(fp, "%d", masterPassword[PASSWD_LEN+1]); //masterpassword
 	
-	while(fscanf(filepath, "%d %d %d %d %d %s", x, y, p.building, p.room, p.passwd[i], p.context)!=EOF);
+	while(fscanf(fp, "%d %d %d %d %d %s", x, y, p.building, p.room, p.passwd[i], p.context)!=EOF);
 	{
 		fput("%d %d %d %d %d %s", x, y, p.building, p.room, p.passwd[i], p.context);
 		
@@ -138,7 +130,7 @@ int str_backupSystem(char* filepath) {
 		}	
 	}
 	
-	fclose(filepath);
+	fclose(fp);
 	
 	return 0;
 }
@@ -154,23 +146,22 @@ int str_createSystem(char* filepath) {
 	int x, y;
 	int line =0;
 	
-	storage_t p;
+	FILE *fp;
+	fp = fopen("storage.txt", "r");
 	
-	*filepath = fopen("storage.txt", "r");
-	
-	if(filepath == NULL)
+	if(fp == NULL)
 	{
 		return -1;
 	}
 	
-	fscanf(filepath, "%d %d", systemSize[0], systemSize[1]);//N and M
-	fscanf(filepath, "%d", masterPassword[PASSWD_LEN+1]); //masterpassword
+	fscanf(fp, "%d %d", systemSize[0], systemSize[1]);//N and M
+	fscanf(fp, "%d", masterPassword[PASSWD_LEN+1]); //masterpassword
 	
 	for(i=0; i<15; i++)
 	{
-		fscanf(filepath, "%d %d %d %d %d %s", x, y, p.building, p.room, p.passwd[i], p.context);
+		fscanf(fp, "%d %d %d %d %d %s", x, y, deliverySystem[x][y].building, deliverySystem[x][y].room, deliverySystem[x][y].passwd[i], deliverySystem[x][y].context);
 		
-		if(p.context == '\0')
+		if(deliverySystem[x][y].context == '\0')
 		{
 			line++;//next line
 			storedCnt++;
@@ -179,7 +170,7 @@ int str_createSystem(char* filepath) {
 		deliverySystem[x][y].cnt = storedCnt;
 	}
 	
-	fclose(filepath);
+	fclose(fp);
 	
 	return 0;
 }
@@ -197,7 +188,7 @@ void str_freeSystem(void) {
 	
 	for(i=0; i<15; i++)
 	{
-		free(*(p.context+i));
+		free((p.context+i));
 	}
 }
 
@@ -261,8 +252,41 @@ int str_checkStorage(int x, int y) {
 //return : 0 - successfully put the package, -1 - failed to put
 int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_SIZE+1], char passwd[PASSWD_LEN+1]) {
 	
+	int i;
+	char *filepath;
+	int line=0;
 	
+	str_createSystem(filepath);
 	
+	FILE *fp;
+	filepath = fopen("storage.txt", "a");
+	
+	i= str_createSystem(filepath);
+	
+	if(i==0)
+	{
+		
+		fscanf(fp, "%d %d", systemSize[0], systemSize[1]);//N and M
+		fscanf(fp, "%d", masterPassword[PASSWD_LEN+1]); //masterpassword
+	
+		while(fscanf(fp, "%d %d %d %d %d %s", x, y, deliverySystem[x][y].building, deliverySystem[x][y].room, deliverySystem[x][y].passwd[i], deliverySystem[x][y].context)!=EOF);
+		{
+			fput("%d %d %d %d %d %s", x, y, deliverySystem[x][y].building, deliverySystem[x][y].room, deliverySystem[x][y].passwd[i],deliverySystem[x][y].context);
+		
+			if(deliverySystem[x][y].context == '\0')
+			{
+				line++;//next line
+			}	
+		}
+	
+		fclose(fp);
+		
+		return 0;
+		}
+	else
+	{
+		return -1;
+	}
 }
 
 
@@ -274,22 +298,15 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 int str_extractStorage(int x, int y) {
 	
 	int i;
+	char *filepath;
 	
-	char* filepath;
-	
-	FILE *fliepath;
-	
-	*filepath = fopen("storage.txt", "r");
-	
-	fscanf(filepath, "%d %d", systemSize[0], systemSize[1]);//N and M
-	
-	fscanf(filepath, "%d", masterPassword[PASSWD_LEN+1]); //masterpassword
-	
-	fscanf(filepath, "%d %d %d %d %d %s", x, y, deliverySystem[x][y].building, deliverySystem[x][y].room, deliverySystem[x][y].passwd[i], deliverySystem[x][y].context);
+	str_createSystem(filepath);
 	
 	inputPasswd(x, y);
 	
-	if(inputpasswd()==0)
+	i = intputPasswd(x, y);
+	
+	if(i==0)
 	{
 		printStorageInside(x, y);
 	}
@@ -297,8 +314,6 @@ int str_extractStorage(int x, int y) {
 	{
 		return -1;
 	}
-	
-	fclose(filepath);
 	
 }
 
@@ -308,9 +323,22 @@ int str_extractStorage(int x, int y) {
 //return : number of packages that the storage system has
 int str_findStorage(int nBuilding, int nRoom) {
 	
-	str_printStorageStatus();
+	int x, y;
+	int cnt=0;
+	char *filepath;
 	
+	str_createSystem(filepath);
 	
+	if(nBuilding==deliverySystem[x][y].building&&nRoom==deliverySystem[x][y].room)
+	{
+		printf(" -----------> found a package in (%d, %d)....\n", x, y);
+	}
+	else
+	{
+		return 0;
+	}
+	
+	cnt = deliverySystem[x][y].cnt;
 	
 	return cnt;
 }
