@@ -78,7 +78,7 @@ static int inputPasswd(int x, int y) {
 
 	int passwd;
 	
-	if(passwd == deliverySystem[x][y].passwd||masterPassword[PASSWD_LEN+1]==i)//input passwd == save passwd
+	if(deliverySystem[x][y].passwd==0)//input passwd == save passwd
 	{
 		return 0;
 	}
@@ -259,7 +259,7 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 	str_createSystem(filepath);
 	
 	FILE *fp;
-	filepath = fopen("storage.txt", "a");
+	fp = fopen("storage.txt", "a");
 	
 	i= str_createSystem(filepath);
 	
@@ -271,7 +271,7 @@ int str_pushToStorage(int x, int y, int nBuilding, int nRoom, char msg[MAX_MSG_S
 	
 		while(fscanf(fp, "%d %d %d %d %d %s", x, y, deliverySystem[x][y].building, deliverySystem[x][y].room, deliverySystem[x][y].passwd[i], deliverySystem[x][y].context)!=EOF);
 		{
-			fput("%d %d %d %d %d %s", x, y, deliverySystem[x][y].building, deliverySystem[x][y].room, deliverySystem[x][y].passwd[i],deliverySystem[x][y].context);
+			fputs("%d %d %d %d %d %s", fp);
 		
 			if(deliverySystem[x][y].context == '\0')
 			{
@@ -304,7 +304,7 @@ int str_extractStorage(int x, int y) {
 	
 	inputPasswd(x, y);
 	
-	i = intputPasswd(x, y);
+	i = inputPasswd(x, y);
 	
 	if(i==0)
 	{
